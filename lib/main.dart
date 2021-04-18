@@ -22,6 +22,10 @@ class CreateFormTransfer extends StatelessWidget {
   final TextEditingController _agencyController = TextEditingController();
   final TextEditingController _bankController = TextEditingController();
 
+  void createTransfer(TransferDTO transfer){
+    debugPrint(transfer.toString());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,62 +34,24 @@ class CreateFormTransfer extends StatelessWidget {
       ),
       body: Column(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              style: TextStyle(
-                fontSize: 16.0,
-              ),
-              decoration: InputDecoration(
-                  icon: Icon(Icons.monetization_on),
-                  labelText: 'Valor',
-                  hintText: '0.00'),
-              keyboardType: TextInputType.number,
-              controller: this._valueController,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              style: TextStyle(
-                fontSize: 16.0,
-              ),
-              decoration: InputDecoration(
-                  icon: Icon(Icons.account_balance),
-                  labelText: 'Banco',
-                  hintText: 'Codigo Banco'),
-              keyboardType: TextInputType.number,
-              controller: this._bankController,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              style: TextStyle(
-                fontSize: 16.0,
-              ),
-              decoration: InputDecoration(
-                  icon: Icon(Icons.book),
-                  labelText: 'Agência',
-                  hintText: '0000'),
-              keyboardType: TextInputType.number,
-              controller: this._agencyController,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              style: TextStyle(
-                fontSize: 16.0,
-              ),
-              decoration: InputDecoration(
-                  icon: Icon(Icons.account_balance_wallet),
-                  labelText: 'Conta',
-                  hintText: '0000'),
-              keyboardType: TextInputType.number,
-              controller: this._accountController,
-            ),
-          ),
+          InputTextApp(
+              this._valueController, 'Valor',
+              hint: 'Valor maior que zero',
+              icon: Icons.monetization_on,
+              inputType: TextInputType.number),
+          InputTextApp(
+              this._bankController, 'Banco',
+              hint: 'Código Banco',
+              icon: Icons.account_balance,
+              inputType: TextInputType.number),
+          InputTextApp(
+              this._agencyController, 'Agência', hint: '0000',
+              icon: Icons.book,
+              inputType: TextInputType.number),
+          InputTextApp(
+              this._accountController, 'Conta', hint: '0000-0',
+              icon: Icons.account_balance_wallet,
+              inputType: TextInputType.number),
           ElevatedButton(
             child: Text('Transferir'),
             onPressed: () {
@@ -103,11 +69,39 @@ class CreateFormTransfer extends StatelessWidget {
                 );
                 return;
               }
-              //Tranferencia válida, executar codigo
-              debugPrint(transfer.toString());
+              createTransfer(transfer);
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class InputTextApp extends StatelessWidget {
+
+  TextEditingController _controller;
+  String _label;
+  TextInputType inputType;
+  String hint;
+  IconData icon;
+
+  InputTextApp(this._controller, this._label,
+      {this.hint, this.inputType, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextField(
+        style: TextStyle(fontSize: 16.0),
+        decoration: InputDecoration(
+            icon: this.icon != null ? Icon(this.icon) : null,
+            labelText: this._label,
+            hintText: this.hint != null ? this.hint : null),
+        keyboardType: this.inputType != null ? this.inputType : TextInputType
+            .text,
+        controller: this._controller,
       ),
     );
   }
