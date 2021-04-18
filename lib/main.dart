@@ -17,9 +17,13 @@ class BytebankApp extends StatelessWidget {
 }
 
 class CreateFormTransfer extends StatelessWidget {
+  final TextEditingController _accountController = TextEditingController();
+  final TextEditingController _valueController = TextEditingController();
+  final TextEditingController _agencyController = TextEditingController();
+  final TextEditingController _bankController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Scaffold(
       appBar: AppBar(
         title: Text('Fazer Transfrência'),
@@ -32,8 +36,12 @@ class CreateFormTransfer extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16.0,
               ),
-              decoration: InputDecoration(labelText: 'Conta', hintText: '0000'),
+              decoration: InputDecoration(
+                  icon: Icon(Icons.monetization_on),
+                  labelText: 'Valor',
+                  hintText: '0.00'),
               keyboardType: TextInputType.number,
+              controller: this._valueController,
             ),
           ),
           Padding(
@@ -43,14 +51,61 @@ class CreateFormTransfer extends StatelessWidget {
                 fontSize: 16.0,
               ),
               decoration: InputDecoration(
-                  icon: Icon(Icons.monetization_on),
-                  labelText: 'Valor',
-                  hintText: '0.00'),
+                  icon: Icon(Icons.account_balance),
+                  labelText: 'Banco',
+                  hintText: 'Codigo Banco'),
               keyboardType: TextInputType.number,
+              controller: this._bankController,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              style: TextStyle(
+                fontSize: 16.0,
+              ),
+              decoration: InputDecoration(
+                  icon: Icon(Icons.book),
+                  labelText: 'Agência',
+                  hintText: '0000'),
+              keyboardType: TextInputType.number,
+              controller: this._agencyController,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              style: TextStyle(
+                fontSize: 16.0,
+              ),
+              decoration: InputDecoration(
+                  icon: Icon(Icons.account_balance_wallet),
+                  labelText: 'Conta',
+                  hintText: '0000'),
+              keyboardType: TextInputType.number,
+              controller: this._accountController,
             ),
           ),
           ElevatedButton(
             child: Text('Transferir'),
+            onPressed: () {
+              double value = double.tryParse(this._valueController.text);
+              TransferDTO transfer = TransferDTO(
+                  value,
+                  this._agencyController.text,
+                  this._accountController.text,
+                  this._bankController.text);
+              if (!transfer.isValid()) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Tranferência inválida. Por favor verifique os campos!"),
+                  ),
+                );
+                return;
+              }
+              //Tranferencia válida, executar codigo
+              debugPrint(transfer.toString());
+            },
           ),
         ],
       ),
@@ -60,7 +115,7 @@ class CreateFormTransfer extends StatelessWidget {
 
 void callback() {}
 
-class TransfersList extends StatelessWidget {
+class HomeBytebank extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,12 +160,24 @@ class TransferDTO {
 
   TransferDTO(this._value, this._agency, this._account, this._bank);
 
+  bool isValid() {
+    return this._value != null && this._value > 0 &&
+        this._agency != null &&
+        this._account != null &&
+        this._bank != null;
+  }
+
   String getDetailTransfer() {
     return _bank.toString() +
         ' - Agência: ' +
         this._agency +
         ' - Conta: ' +
         this._account;
+  }
+
+  @override
+  String toString() {
+    return 'TransferDTO{_value: $_value, _agency: $_agency, _account: $_account, _bank: $_bank}';
   }
 }
 
