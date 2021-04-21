@@ -9,7 +9,7 @@ class BytebankApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: CreateFormTransfer(),
+        body: HomeBytebank(),
         drawer: DrawerByteBank(),
       ),
     );
@@ -22,8 +22,17 @@ class CreateFormTransfer extends StatelessWidget {
   final TextEditingController _agencyController = TextEditingController();
   final TextEditingController _bankController = TextEditingController();
 
-  void createTransfer(TransferDTO transfer){
-    debugPrint(transfer.toString());
+  void createTransfer(TransferDTO transfer, BuildContext context) {
+    if (!transfer.isValid()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text("Tranferência inválida. Por favor verifique os campos!"),
+        ),
+      );
+      return;
+    }
+    Navigator.pop(context, transfer);
   }
 
   @override
@@ -34,22 +43,18 @@ class CreateFormTransfer extends StatelessWidget {
       ),
       body: Column(
         children: <Widget>[
-          InputTextApp(
-              this._valueController, 'Valor',
+          InputTextApp(this._valueController, 'Valor',
               hint: 'Valor maior que zero',
               icon: Icons.monetization_on,
               inputType: TextInputType.number),
-          InputTextApp(
-              this._bankController, 'Banco',
+          InputTextApp(this._bankController, 'Banco',
               hint: 'Código Banco',
               icon: Icons.account_balance,
               inputType: TextInputType.number),
-          InputTextApp(
-              this._agencyController, 'Agência', hint: '0000',
-              icon: Icons.book,
-              inputType: TextInputType.number),
-          InputTextApp(
-              this._accountController, 'Conta', hint: '0000-0',
+          InputTextApp(this._agencyController, 'Agência',
+              hint: '0000', icon: Icons.book, inputType: TextInputType.number),
+          InputTextApp(this._accountController, 'Conta',
+              hint: '0000-0',
               icon: Icons.account_balance_wallet,
               inputType: TextInputType.number),
           ElevatedButton(
@@ -61,15 +66,7 @@ class CreateFormTransfer extends StatelessWidget {
                   this._agencyController.text,
                   this._accountController.text,
                   this._bankController.text);
-              if (!transfer.isValid()) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Tranferência inválida. Por favor verifique os campos!"),
-                  ),
-                );
-                return;
-              }
-              createTransfer(transfer);
+              createTransfer(transfer, context);
             },
           ),
         ],
@@ -79,7 +76,6 @@ class CreateFormTransfer extends StatelessWidget {
 }
 
 class InputTextApp extends StatelessWidget {
-
   TextEditingController _controller;
   String _label;
   TextInputType inputType;
@@ -99,31 +95,49 @@ class InputTextApp extends StatelessWidget {
             icon: this.icon != null ? Icon(this.icon) : null,
             labelText: this._label,
             hintText: this.hint != null ? this.hint : null),
-        keyboardType: this.inputType != null ? this.inputType : TextInputType
-            .text,
+        keyboardType:
+            this.inputType != null ? this.inputType : TextInputType.text,
         controller: this._controller,
       ),
     );
   }
 }
 
-void callback() {}
+class HomeBytebank extends StatefulWidget {
 
-class HomeBytebank extends StatelessWidget {
+  List<TransferDTO> _listTransfers = List.empty(growable: true);
+
+  @override
+  State<StatefulWidget> createState() => HomeBytebankState();
+
+}
+
+class HomeBytebankState extends State<HomeBytebank> {
+
   @override
   Widget build(BuildContext context) {
+    widget._listTransfers.add(TransferDTO(899, '7783', '7749', '3322'));
     return Scaffold(
       appBar: AppBar(title: Text('Transferências')),
-      body: Column(
-        children: [
-          TransferData(TransferDTO(560.76, '3567', '12289-0', 'Itaú')),
-          TransferData(TransferDTO(1490.21, '4561', '11456-9', 'Santander')),
-          TransferData(TransferDTO(90.00, '4561', '11456-9', 'Santander')),
-          TransferData(TransferDTO(341.09, '3567', '12289-0', 'Itaú')),
-          TransferData(TransferDTO(128.55, '3567', '12289-0', 'Itaú'))
-        ],
+      body: ListView.builder(
+        itemCount: widget._listTransfers.length,
+        itemBuilder: (BuildContext context, int index) {
+          final TransferDTO transfer = widget._listTransfers[index];
+          debugPrint('adicionando ao data $transfer');
+          return TransferData(transfer);
+        },
       ),
-      floatingActionButton: FloatingActionButton(child: Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Future<TransferDTO> future =
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return CreateFormTransfer();
+            }));
+            future.then((transfer) {
+              widget._listTransfers.add(transfer);
+              });
+          },
+          child: Icon(Icons.add)),
       drawer: DrawerByteBank(),
     );
   }
@@ -155,7 +169,8 @@ class TransferDTO {
   TransferDTO(this._value, this._agency, this._account, this._bank);
 
   bool isValid() {
-    return this._value != null && this._value > 0 &&
+    return this._value != null &&
+        this._value > 0 &&
         this._agency != null &&
         this._account != null &&
         this._bank != null;
