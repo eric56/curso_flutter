@@ -104,26 +104,21 @@ class InputTextApp extends StatelessWidget {
 }
 
 class HomeBytebank extends StatefulWidget {
-
   List<TransferDTO> _listTransfers = List.empty(growable: true);
 
   @override
   State<StatefulWidget> createState() => HomeBytebankState();
-
 }
 
 class HomeBytebankState extends State<HomeBytebank> {
-
   @override
   Widget build(BuildContext context) {
-    widget._listTransfers.add(TransferDTO(899, '7783', '7749', '3322'));
     return Scaffold(
       appBar: AppBar(title: Text('Transferências')),
       body: ListView.builder(
         itemCount: widget._listTransfers.length,
         itemBuilder: (BuildContext context, int index) {
           final TransferDTO transfer = widget._listTransfers[index];
-          debugPrint('adicionando ao data $transfer');
           return TransferData(transfer);
         },
       ),
@@ -134,8 +129,12 @@ class HomeBytebankState extends State<HomeBytebank> {
               return CreateFormTransfer();
             }));
             future.then((transfer) {
-              widget._listTransfers.add(transfer);
-              });
+              if(transfer != null){
+                setState(() {
+                  widget._listTransfers.add(transfer);
+                });
+              }
+            });
           },
           child: Icon(Icons.add)),
       drawer: DrawerByteBank(),
